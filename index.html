@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="uz" class="h-full bg-slate-950 text-slate-100 dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DentaQueue - Stomatologiya Elektron Navbat Tizimi</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dental: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            900: '#0c4a6e',
+                            950: '#082f49'
+                        },
+                        medical: {
+                            100: '#ccfbf1',
+                            500: '#14b8a6',
+                            600: '#0d9488',
+                            700: '#0f766e'
+                        }
+                    },
+                    animation: {
+                        'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'bounce-short': 'bounce 0.8s ease-in-out 2'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome & Tone.js CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        /* Custom scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.8);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #0ea5e9;
+        }
+        /* Printing styles for ticket pass */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #printable-ticket, #printable-ticket * {
+                visibility: visible;
+            }
+            #printable-ticket {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                color: black !important;
+                background: white !important;
+            }
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col bg-slate-950 text-slate-100 antialiased selection:bg-dental-500 selection:text-white">
+
+    <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Brand Logo & Title -->
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('booking')">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-dental-600 via-teal-500 to-emerald-400 flex items-center justify-center shadow-lg shadow-dental-500/20 text-white font-extrabold text-xl">
+                        <i class="fa-solid fa-tooth"></i>
+                    </div>
+                    <div>
+                        <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-dental-400 bg-clip-text text-transparent">DentaQueue</span>
+                        <span class="text-[10px] sm:text-xs text-medical-500 block -mt-1 font-semibold uppercase tracking-wider">Stomatologiya Elektron Navbati</span>
+                    </div>
+                </div>
+
+                <!-- Desktop Navigation Tabs -->
+                <nav class="hidden lg:flex space-x-1 bg-slate-800/80 p-1 rounded-xl border border-slate-700/60">
+                    <button onclick="switchTab('booking')" id="tab-btn-booking" class="tab-btn flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all duration-200 text-white bg-dental-600 shadow">
+                        <i class="fa-regular fa-calendar-check"></i>
+                        <span>Qabulga Yozilish</span>
+                    </button>
+                    <button onclick="switchTab('display')" id="tab-btn-display" class="tab-btn flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-700/50">
+                        <i class="fa-solid fa-tv"></i>
+                        <span>Kutish Zali Ekranı</span>
+                        <span class="relative flex h-2 w-2 ml-0.5">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                    </button>
+                    <button onclick="switchTab('admin')" id="tab-btn-admin" class="tab-btn flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-700/50">
+                        <i class="fa-solid fa-user-doctor"></i>
+                        <span>Shifokor & Reception</span>
+                    </button>
+                    <button onclick="switchTab('analytics')" id="tab-btn-analytics" class="tab-btn flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-700/50">
+                        <i class="fa-solid fa-chart-pie"></i>
+                        <span>Statistika & Map</span>
+                    </button>
+                    <button onclick="switchTab('tickets')" id="tab-btn-tickets" class="tab-btn flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-700/50">
+                        <i class="fa-solid fa-ticket"></i>
+                        <span>Mening Chiptam</span>
+                        <span id="my-ticket-badge" class="hidden bg-dental-500 text-white text-[10px] px-1.5 py-0.2 rounded-full font-bold">1</span>
+                    </button>
+                </nav>
+
+                <!-- Audio Toggle & Reset Options -->
+                <div class="flex items-center space-x-2">
+                    <button onclick="toggleAudio()" id="audio-toggle-btn" class="p-2.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 transition flex items-center gap-2 text-xs" title="Ovozli chaqiruvni yoqish/o'chirish">
+                        <i class="fa-solid fa-volume-high text-emerald-400" id="audio-icon"></i>
+                        <span class="hidden sm:inline font-medium" id="audio-status-text">Ovoz Yoniq</span>
+                    </button>
+                    <button onclick="resetAllDemoData()" class="p-2.5 rounded-xl bg-slate-800 text-slate-400 hover:text-rose-400 border border-slate-700/80 transition" title="Barcha ma'lumotlarni qayta tiklash (Reset Demo)">
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Menu Bar -->
+        <div class="lg:hidden flex border-t border-slate-800 bg-slate-900/95 px-2 py-2 overflow-x-auto space-x-1">
+            <button onclick="switchTab('booking')" id="mob-tab-booking" class="mob-tab flex-1 whitespace-nowrap text-center py-2 px-3 rounded-lg text-xs font-semibold bg-dental-600 text-white">Yozilish</button>
+            <button onclick="switchTab('display')" id="mob-tab-display" class="mob-tab flex-1 whitespace-nowrap text-center py-2 px-3 rounded-lg text-xs font-semibold text-slate-400">TV Ekran</button>
+            <button onclick="switchTab('admin')" id="mob-tab-admin" class="mob-tab flex-1 whitespace-nowrap text-center py-2 px-3 rounded-lg text-xs font-semibold text-slate-400">Shifokor</button>
+            <button onclick="switchTab('analytics')" id="mob-tab-analytics" class="mob-tab flex-1 whitespace-nowrap text-center py-2 px-3 rounded-lg text-xs font-semibold text-slate-400">Statistika</button>
+            <button onclick="switchTab('tickets')" id="mob-tab-tickets" class="mob-tab flex-1 whitespace-nowrap text-center py-2 px-3 rounded-lg text-xs font-semibold text-slate-400">Chiptam</button>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+
+        <!-- ================= TAB 1: BOOKING FORM & ONLINE NAVBAT ================= -->
+        <section id="tab-booking" class="tab-content transition-all duration-300">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Left Form Column -->
+                <div class="lg:col-span-7 bg-slate-900 border border-slate-800/80 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 -mt-10 -mr-10 w-44 h-44 bg-dental-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                    <div class="mb-6">
+                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-dental-500/10 text-dental-400 border border-dental-500/20 inline-block mb-2">
+                            <i class="fa-solid fa-clock-rotate-left mr-1"></i> Navbatsiz & Tezkor
+                        </span>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2">
+                            Online Navbatga Yozilish
+                        </h2>
+                        <p class="text-slate-400 text-xs sm:text-sm mt-1">Stomatologiya qabulxonasida kutib vaqt yo'qotmang. Qulay vaqtni tanlang va chipta oling.</p>
+                    </div>
+
+                    <form id="booking-form" onsubmit="handleBookingSubmit(event)" class="space-y-5">
+                        <!-- Patient Name & Phone -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Bemor F.I.SH.</label>
+                                <div class="relative">
+                                    <i class="fa-regular fa-user absolute left-3.5 top-3.5 text-slate-500"></i>
+                                    <input type="text" id="patient-name" required placeholder="Masalan: Sardor Aliyev" class="w-full bg-slate-800/80 border border-slate-700 text-white rounded-xl py-2.5 pl-10 pr-4 focus:ring-2 focus:ring-dental-500 focus:border-transparent outline-none transition text-sm">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Telefon Raqam</label>
+                                <div class="relative">
+                                    <i class="fa-solid fa-phone absolute left-3.5 top-3.5 text-slate-500"></i>
+                                    <input type="tel" id="patient-phone" required placeholder="+998 90 123 45 67" class="w-full bg-slate-800/80 border border-slate-700 text-white rounded-xl py-2.5 pl-10 pr-4 focus:ring-2 focus:ring-dental-500 focus:border-transparent outline-none transition text-sm">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Doctor Picker -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Shifokor va Mutaxassislik</label>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3" id="doctor-selection-grid">
+                                <!-- Dynamically injected doctors -->
+                            </div>
+                        </div>
+
+                        <!-- Date & Time Picker -->
+                        <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+                            <div class="sm:col-span-4">
+                                <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Qabul Kuni</label>
+                                <div class="relative">
+                                    <i class="fa-regular fa-calendar-days absolute left-3.5 top-3.5 text-slate-500"></i>
+                                    <input type="date" id="booking-date" required class="w-full bg-slate-800/80 border border-slate-700 text-white rounded-xl py-2.5 pl-10 pr-3 focus:ring-2 focus:ring-dental-500 outline-none transition text-xs">
+                                </div>
+                            </div>
+
+                            <div class="sm:col-span-8">
+                                <div class="flex justify-between items-center mb-2">
+                                    <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider">Mavjud Soat Slotlari</label>
+                                    <span class="text-[11px] text-dental-400 font-semibold" id="selected-doctor-info">Shifokor tanlang</span>
+                                </div>
+                                <div class="grid grid-cols-3 sm:grid-cols-6 gap-2" id="time-slots-container">
+                                    <!-- Dynamically injected time slots -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Treatment / Complaint Category -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Xizmat yoki Muolaja Turi</label>
+                            <select id="service-type" class="w-full bg-slate-800/80 border border-slate-700 text-white rounded-xl py-2.5 px-3 focus:ring-2 focus:ring-dental-500 outline-none transition text-sm">
+                                <option value="Tekshiruv va Konsultatsiya">🔍 Tekshiruv & Konsultatsiya (~30 min)</option>
+                                <option value="Tish Davolash (Plomba)">🦷 Tish Davolash / Plomba (~45 min)</option>
+                                <option value="Tish Tozalash va Oqartirish">✨ Tishlarni Tozalash / Gigiyena (~30 min)</option>
+                                <option value="Jarrohlik / Tish Oldirish">⚕️ Jarrohlik / Tish Oldirish (~40 min)</option>
+                                <option value="Ortodontiya / Breket ko'rigi">🦿 Ortodontiya / Breket Sozlash (~30 min)</option>
+                                <option value="Implantatsiya Maslahati">🛡️ Implantatsiya & Protezlash (~45 min)</option>
+                                <option value="Shoshilinch O'tkir Og'riq">⚡ Shoshilinch O'tkir Og'riq (Yuqori Ustuvorlik)</option>
+                            </select>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-dental-500 via-teal-500 to-emerald-500 hover:from-dental-600 hover:to-emerald-600 text-white font-extrabold text-base shadow-xl shadow-dental-500/20 transition transform active:scale-[0.99] flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-ticket text-lg"></i>
+                            <span>Elektron Navbat Chiptasini Olish</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Right Live Preview Column -->
+                <div class="lg:col-span-5 space-y-6">
+                    <!-- Live Clinic Overview Box -->
+                    <div class="bg-slate-900 border border-slate-800/80 rounded-3xl p-6 shadow-xl">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-bold text-white text-base flex items-center gap-2">
+                                <i class="fa-solid fa-users text-medical-500"></i>
+                                Hozirgi Kutish Zalidagi Holat
+                            </h3>
+                            <span class="text-xs bg-slate-800 px-2.5 py-1 rounded-full text-slate-300 border border-slate-700 font-semibold" id="live-queue-count">0 kishi</span>
+                        </div>
+
+                        <!-- Active Patient Banner -->
+                        <div id="quick-serving-box" class="bg-gradient-to-r from-dental-950 to-slate-900 border border-dental-500/40 rounded-2xl p-4 mb-4 flex items-center justify-between">
+                            <div>
+                                <span class="text-[10px] text-dental-400 font-bold uppercase tracking-wider block">Xonadagi Joriy Bemor</span>
+                                <span class="text-3xl font-extrabold text-white tracking-wider font-mono" id="quick-now-serving-ticket">---</span>
+                                <span class="text-xs text-slate-300 block mt-0.5" id="quick-now-serving-doctor">Shifokor: -</span>
+                            </div>
+                            <div class="w-12 h-12 rounded-2xl bg-dental-500/20 border border-dental-400/40 flex items-center justify-center text-dental-400 text-xl animate-pulse">
+                                <i class="fa-solid fa-tooth"></i>
+                            </div>
+                        </div>
+
+                        <!-- Doctor Queue List -->
+                        <div class="space-y-3" id="quick-doctors-queue-list">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Modern Clinic Benefits Card -->
+                    <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 space-y-3">
+                        <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-shield-halved text-emerald-400"></i>
+                            Elektron Tizim Afzalliklari
+                        </h4>
+                        <ul class="text-xs text-slate-400 space-y-2">
+                            <li class="flex items-start gap-2">
+                                <i class="fa-solid fa-circle-check text-emerald-400 mt-0.5"></i>
+                                <span><strong>Aniq vaqt kafolati:</strong> Tanlangan soatda shifokor qabuliga chaqirilasiz.</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fa-solid fa-circle-check text-emerald-400 mt-0.5"></i>
+                                <span><strong>Ovozli va Vizual Display:</strong> Kutish zalidagi katta TV ekranda navbatingiz ko'rinadi.</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fa-solid fa-circle-check text-emerald-400 mt-0.5"></i>
+                                <span><strong>Shoshilinch Yordam:</strong> Kuchli o'tkir og'riq bo'lsa, navbat boshiga tezkor joylashtirish.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 2: LIVE TV WAITING ROOM MONITOR ================= -->
+        <section id="tab-display" class="tab-content hidden transition-all duration-300">
+            <div class="bg-slate-900 border-2 border-slate-800 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
+                <!-- TV Monitor Top Bar -->
+                <div class="flex flex-wrap justify-between items-center border-b border-slate-800 pb-4 mb-6 gap-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-dental-600 to-emerald-500 flex items-center justify-center text-white text-2xl shadow-lg">
+                            <i class="fa-solid fa-hospital"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-black tracking-tight text-white">DENTA-CLINIC MONITOR</h2>
+                            <p class="text-xs text-emerald-400 font-semibold uppercase tracking-wider flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                                Jonli Kutish Zali Displeyi (Live Display)
+                            </p>
+                        </div>
+                    </div>
+                    <div class="text-right bg-slate-950 px-4 py-2 rounded-2xl border border-slate-800">
+                        <div class="text-3xl font-black text-white tracking-widest font-mono" id="live-clock">12:00:00</div>
+                        <div class="text-[11px] text-slate-400 font-medium" id="live-date">Bugun</div>
+                    </div>
+                </div>
+
+                <!-- Main Display Board Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Currently Called Big Display Box (7 cols) -->
+                    <div class="lg:col-span-7 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border-2 border-dental-500/50 rounded-2xl p-6 flex flex-col justify-between shadow-2xl relative">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-extrabold text-dental-400 uppercase tracking-widest bg-dental-500/10 px-3 py-1.5 rounded-full border border-dental-500/30 flex items-center gap-2">
+                                <i class="fa-solid fa-bullhorn text-emerald-400 animate-bounce"></i> XONAGA CHAQIRILMOQDA
+                            </span>
+                            <span class="text-xs text-slate-400 font-mono" id="last-called-time">--:--</span>
+                        </div>
+
+                        <div class="text-center my-8">
+                            <div class="text-slate-400 font-semibold text-lg mb-1" id="tv-called-patient-name">Kutilmoqda...</div>
+                            <div class="text-7xl sm:text-8xl font-black tracking-wider my-2 font-mono text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-dental-400 drop-shadow-md animate-pulse" id="tv-called-ticket">
+                                ---
+                            </div>
+                            <div class="inline-flex items-center gap-2 bg-slate-800/90 text-slate-200 px-6 py-2.5 rounded-2xl border border-slate-700 text-base sm:text-lg font-bold shadow-md" id="tv-called-cabinet">
+                                <i class="fa-solid fa-door-open text-dental-400"></i>
+                                Xona: -
+                            </div>
+                        </div>
+
+                        <div class="border-t border-slate-800/80 pt-4 flex justify-between items-center text-xs text-slate-400">
+                            <span>Mas'ul Shifokor: <strong class="text-white" id="tv-called-doctor-name">-</strong></span>
+                            <span class="text-emerald-400 font-semibold flex items-center gap-1">
+                                <i class="fa-solid fa-volume-high"></i> Ovozli Chaqiruv Faol
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Room Status Grid (5 cols) -->
+                    <div class="lg:col-span-5 space-y-4">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex justify-between">
+                            <span>Kabinetlar Bo'yicha Qabul</span>
+                            <span class="text-dental-400">Jonli holat</span>
+                        </h3>
+
+                        <div class="space-y-3" id="tv-cabinet-status-list">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Ticker / Upcoming Patients -->
+                <div class="mt-6 bg-slate-950 border border-slate-800 rounded-2xl p-3 flex items-center overflow-hidden">
+                    <div class="bg-dental-600 text-white font-extrabold text-xs px-3.5 py-1.5 rounded-xl shrink-0 mr-3 flex items-center gap-1.5 shadow">
+                        <i class="fa-solid fa-clock"></i> NAVBATDAGILAR:
+                    </div>
+                    <div class="overflow-x-auto whitespace-nowrap scrollbar-none flex space-x-3 text-xs" id="tv-upcoming-list">
+                        <!-- Upcoming tickets list -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 3: DOCTOR & RECEPTION CONTROL PANEL ================= -->
+        <section id="tab-admin" class="tab-content hidden transition-all duration-300">
+            <div class="space-y-6">
+                <!-- Control Header -->
+                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl flex flex-wrap justify-between items-center gap-4">
+                    <div>
+                        <h2 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-user-gear text-dental-400"></i>
+                            Shifokor va Reception Boshqaruv Paneli
+                        </h2>
+                        <p class="text-slate-400 text-xs mt-0.5">Navbatni boshqarish, bemorlarni chaqirish va shoshilinch bemor qo'shish.</p>
+                    </div>
+
+                    <!-- Doctor Switcher -->
+                    <div class="flex items-center space-x-3 bg-slate-950 p-2 rounded-2xl border border-slate-800">
+                        <label class="text-xs text-slate-400 font-bold uppercase pl-2">Faol Shifokor:</label>
+                        <select id="admin-doctor-select" onchange="renderAdminDashboard()" class="bg-slate-800 border border-slate-700 text-white text-xs font-semibold rounded-xl py-2 px-3 focus:ring-2 focus:ring-dental-500 outline-none">
+                            <!-- Doctor options -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Admin Action Control Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Call Next Patient Box -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-lg flex flex-col justify-between">
+                        <div>
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Xonadagi Joriy Bemor</span>
+                            <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4 text-center my-2">
+                                <div class="text-3xl font-extrabold text-emerald-400 font-mono" id="admin-current-ticket">---</div>
+                                <div class="text-sm font-bold text-white mt-1" id="admin-current-name">Bemor yo'q</div>
+                                <div class="text-xs text-slate-400" id="admin-current-service">Xizmat: -</div>
+                            </div>
+                        </div>
+                        <div class="space-y-2 mt-4">
+                            <button onclick="callNextPatient()" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-sm shadow-lg transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-bullhorn text-base"></i>
+                                Keyingi Bemorni Chaqirish
+                            </button>
+                            <button onclick="finishCurrentPatient()" class="w-full py-2 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs border border-slate-700 transition">
+                                <i class="fa-solid fa-circle-check text-emerald-400 mr-1"></i> Qabulni Yakunlash
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Emergency Priority Inserter -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-lg flex flex-col justify-between">
+                        <div>
+                            <span class="text-xs font-bold text-rose-400 uppercase tracking-wider block mb-1 flex items-center gap-1">
+                                <i class="fa-solid fa-bolt"></i> Shoshilinch Bemor (VIP Walk-In)
+                            </span>
+                            <p class="text-xs text-slate-400 mb-3">O'tkir og'riq bilan kelgan bemorni navbat boshiga tezkor kiritish.</p>
+                            <div class="space-y-2.5">
+                                <input type="text" id="emergency-name" placeholder="Bemor Ismi" class="w-full bg-slate-800 border border-slate-700 text-xs rounded-xl p-2.5 text-white outline-none focus:border-rose-500">
+                                <input type="tel" id="emergency-phone" placeholder="Telefon" class="w-full bg-slate-800 border border-slate-700 text-xs rounded-xl p-2.5 text-white outline-none focus:border-rose-500">
+                            </div>
+                        </div>
+                        <button onclick="addEmergencyTicket()" class="w-full mt-4 py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            Navbat Boshiga Qo'shish
+                        </button>
+                    </div>
+
+                    <!-- Doctor Quick Controls -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-lg flex flex-col justify-between">
+                        <div>
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">Shifokor Ish Rejimi</span>
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between bg-slate-800 p-3 rounded-xl text-xs">
+                                    <span class="text-slate-300 font-medium">Xona Statusi:</span>
+                                    <span id="doctor-status-badge" class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Qabul Qilmoqda</span>
+                                </div>
+                                <div class="flex items-center justify-between bg-slate-800 p-3 rounded-xl text-xs">
+                                    <span class="text-slate-300 font-medium">Bugungi Bemorlar:</span>
+                                    <span id="doctor-total-count" class="font-bold text-white text-sm">0 kishi</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="space-y-2 mt-4">
+                            <button onclick="toggleDoctorPause()" id="pause-doctor-btn" class="w-full py-2.5 px-4 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs transition">
+                                <i class="fa-solid fa-pause mr-1"></i> Tanaffusga Chiqish
+                            </button>
+                            <button onclick="resetDoctorQueue()" class="w-full py-2 px-4 rounded-xl bg-slate-800 hover:bg-rose-950 hover:text-rose-400 text-slate-400 font-medium text-xs border border-slate-700 transition">
+                                <i class="fa-solid fa-trash-can mr-1"></i> Navbatni Qayta Tiklash
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Full Patient Waiting List Table -->
+                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl">
+                    <h3 class="font-bold text-white text-base mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-list-ol text-dental-400"></i>
+                        Kutish Ro'yxati (Tanlangan Shifokor Bo'yicha)
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="bg-slate-950 text-slate-400 uppercase font-semibold border-b border-slate-800">
+                                <tr>
+                                    <th class="py-3 px-4">Chipta №</th>
+                                    <th class="py-3 px-4">Bemor</th>
+                                    <th class="py-3 px-4">Telefon</th>
+                                    <th class="py-3 px-4">Xizmat</th>
+                                    <th class="py-3 px-4">Vaqti</th>
+                                    <th class="py-3 px-4">Holati</th>
+                                    <th class="py-3 px-4 text-right">Boshqaruv</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-queue-table-body" class="divide-y divide-slate-800">
+                                <!-- Table rows populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 4: CLINIC ANALYTICS & INTERACTIVE FLOOR MAP ================= -->
+        <section id="tab-analytics" class="tab-content hidden transition-all duration-300">
+            <div class="space-y-8">
+                <!-- Top Summary Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
+                        <div class="flex items-center justify-between text-slate-400 text-xs font-bold uppercase mb-2">
+                            <span>Bugungi Jami Bemorlar</span>
+                            <i class="fa-solid fa-hospital-user text-dental-400 text-lg"></i>
+                        </div>
+                        <div class="text-3xl font-extrabold text-white font-mono" id="stat-total-patients">0</div>
+                        <div class="text-[11px] text-emerald-400 mt-1"><i class="fa-solid fa-arrow-trend-up"></i> Tizim faol ishlamoqda</div>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
+                        <div class="flex items-center justify-between text-slate-400 text-xs font-bold uppercase mb-2">
+                            <span>Tugallangan Qabullar</span>
+                            <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+                        </div>
+                        <div class="text-3xl font-extrabold text-emerald-400 font-mono" id="stat-completed-patients">0</div>
+                        <div class="text-[11px] text-slate-400 mt-1">Sifatli xizmat ko'rsatildi</div>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
+                        <div class="flex items-center justify-between text-slate-400 text-xs font-bold uppercase mb-2">
+                            <span>O'rtacha Kutish Vaqti</span>
+                            <i class="fa-solid fa-stopwatch text-amber-400 text-lg"></i>
+                        </div>
+                        <div class="text-3xl font-extrabold text-amber-400 font-mono">12 daq</div>
+                        <div class="text-[11px] text-slate-400 mt-1">Me'yoriy ko'rsatkich</div>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
+                        <div class="flex items-center justify-between text-slate-400 text-xs font-bold uppercase mb-2">
+                            <span>Bemor Qoniqishi</span>
+                            <i class="fa-solid fa-face-smile text-teal-400 text-lg"></i>
+                        </div>
+                        <div class="text-3xl font-extrabold text-teal-400 font-mono">98.5%</div>
+                        <div class="text-[11px] text-teal-400 mt-1">Yuqori baholash</div>
+                    </div>
+                </div>
+
+                <!-- Interactive Clinic Visual Map (Floorplan) -->
+                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl">
+                    <div class="mb-6">
+                        <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-map-location-dot text-dental-400"></i>
+                            Klinika Kabinetlari va Xona Vizualizatsiyasi (Visual Map)
+                        </h3>
+                        <p class="text-slate-400 text-xs mt-1">Klinika xonalari va jonli qabul jarayonini grafik xaritada kuzating.</p>
+                    </div>
+
+                    <!-- Visual Layout Diagram -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 bg-slate-950 p-6 rounded-2xl border border-slate-800">
+                        <!-- Interactive Room Cards -->
+                        <div id="room-map-doc1" class="border-2 border-slate-700/80 rounded-2xl p-5 bg-slate-900/80 transition-all">
+                            <!-- Injected -->
+                        </div>
+                        <div id="room-map-doc2" class="border-2 border-slate-700/80 rounded-2xl p-5 bg-slate-900/80 transition-all">
+                            <!-- Injected -->
+                        </div>
+                        <div id="room-map-doc3" class="border-2 border-slate-700/80 rounded-2xl p-5 bg-slate-900/80 transition-all">
+                            <!-- Injected -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 5: MY TICKET & DIGITAL PASS ================= -->
+        <section id="tab-tickets" class="tab-content hidden transition-all duration-300">
+            <div class="max-w-md mx-auto">
+                <div id="no-ticket-view" class="bg-slate-900 border border-slate-800 rounded-3xl p-8 text-center space-y-4">
+                    <div class="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center text-slate-500 text-2xl mx-auto border border-slate-700">
+                        <i class="fa-solid fa-ticket-simple"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white">Sizda Faol Navbat Chiptasi Yo'q</h3>
+                    <p class="text-xs text-slate-400">Qabulga yozilish bo'limidan o'zingizga qulay shifokor va vaqtni tanlab chipta oling.</p>
+                    <button onclick="switchTab('booking')" class="px-5 py-2.5 rounded-xl bg-dental-600 hover:bg-dental-500 text-white font-bold text-xs transition shadow-lg shadow-dental-500/20">
+                        Qabulga Yozilish
+                    </button>
+                </div>
+
+                <!-- Printable Active Ticket Receipt Card -->
+                <div id="printable-ticket" class="hidden">
+                    <div id="active-ticket-card" class="bg-slate-900 border-2 border-dental-500/60 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
+                        <div class="absolute -top-12 -right-12 w-32 h-32 bg-dental-500/20 rounded-full blur-2xl"></div>
+
+                        <!-- Header -->
+                        <div class="text-center border-b border-dashed border-slate-700/80 pb-5 mb-5">
+                            <div class="inline-flex items-center space-x-2 text-dental-400 font-black text-sm mb-1">
+                                <i class="fa-solid fa-tooth"></i> DENTA-CLINIC PASS
+                            </div>
+                            <h2 class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Elektron Navbat Chiptasi</h2>
+                            
+                            <div class="my-4">
+                                <span class="text-xs text-slate-400 block mb-1">Sizning Tartib Raqamingiz</span>
+                                <div class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-dental-400 font-mono tracking-wider" id="ticket-card-number">
+                                    A-01
+                                </div>
+                            </div>
+
+                            <div id="ticket-status-pill" class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                                ⏳ Navbat Kutilmoqda
+                            </div>
+                        </div>
+
+                        <!-- Ticket Details -->
+                        <div class="space-y-3 text-xs border-b border-dashed border-slate-700/80 pb-5 mb-5">
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Bemor:</span>
+                                <span class="font-bold text-white" id="ticket-card-patient">-</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Shifokor:</span>
+                                <span class="font-bold text-dental-300" id="ticket-card-doctor">-</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Kabinet (Xona):</span>
+                                <span class="font-bold text-white" id="ticket-card-room">-</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Qabul Vaqti:</span>
+                                <span class="font-bold text-emerald-400" id="ticket-card-time">-</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Xizmat Turi:</span>
+                                <span class="font-semibold text-slate-200" id="ticket-card-service">-</span>
+                            </div>
+                        </div>
+
+                        <!-- SVG QR Code -->
+                        <div class="text-center space-y-2">
+                            <div class="bg-white p-3 rounded-2xl inline-block shadow-md">
+                                <svg class="w-28 h-28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect width="100" height="100" fill="white"/>
+                                    <path d="M0 0H35V35H0V0ZM7 7V28H28V7H7Z" fill="black"/>
+                                    <path d="M14 14H21V21H14V14Z" fill="black"/>
+                                    <path d="M65 0H100V35H65V0ZM72 7V28H93V7H72Z" fill="black"/>
+                                    <path d="M79 14H86V21H79V14Z" fill="black"/>
+                                    <path d="M0 65H35V100H0V65ZM7 72V93H28V72H7Z" fill="black"/>
+                                    <path d="M14 79H21V86H14V79Z" fill="black"/>
+                                    <rect x="45" y="10" width="10" height="25" fill="black"/>
+                                    <rect x="10" y="45" width="25" height="10" fill="black"/>
+                                    <rect x="45" y="45" width="15" height="15" fill="black"/>
+                                    <rect x="70" y="45" width="20" height="10" fill="black"/>
+                                    <rect x="45" y="70" width="10" height="20" fill="black"/>
+                                    <rect x="65" y="65" width="25" height="25" fill="black"/>
+                                </svg>
+                            </div>
+                            <p class="text-[10px] text-slate-400">Qabulxonaga kelganda ushbu QR-kodni skaner qiling.</p>
+                        </div>
+
+                        <!-- Action Controls -->
+                        <div class="grid grid-cols-2 gap-2 mt-5">
+                            <button onclick="printTicket()" class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 border border-slate-700">
+                                <i class="fa-solid fa-print"></i>
+                                Chiptani Chop Etish
+                            </button>
+                            <button onclick="cancelMyTicket()" class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-rose-950 text-slate-300 hover:text-rose-300 text-xs font-semibold transition border border-slate-700">
+                                Bekor Qilish
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 border-t border-slate-800 py-4 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-2">
+            <div>
+                © 2026 <strong>DentaQueue System</strong>. Stomatologiya navbatini avtomatlashtirish loyihasi.
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="hover:text-slate-300 cursor-pointer" onclick="switchTab('display')">Jonli Monitor</span>
+                <span>•</span>
+                <span class="hover:text-slate-300 cursor-pointer" onclick="switchTab('admin')">Admin Panel</span>
+                <span>•</span>
+                <span class="hover:text-slate-300 cursor-pointer" onclick="switchTab('analytics')">Statistika</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        /* Initial Mock Data and Persistent Application State */
+        const DEFAULT_STATE = {
+            doctors: [
+                { id: 'doc1', name: 'Dr. Rustamov Anvar', spec: 'Ortodont', room: '101-xona', code: 'A', status: 'Active' },
+                { id: 'doc2', name: 'Dr. Karimov Bobur', spec: 'Jarroh-Stomatolog', room: '102-xona', code: 'B', status: 'Active' },
+                { id: 'doc3', name: 'Dr. Umarova Nigora', spec: 'Terapevt', room: '103-xona', code: 'C', status: 'Active' }
+            ],
+            timeSlots: ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "14:00", "14:30", "15:00", "15:30", "16:00"],
+            tickets: [
+                { id: 101, number: 'A-01', patientName: 'Sardor Rahimov', phone: '+998 90 111 22 33', doctorId: 'doc1', service: 'Tish Davolash (Plomba)', time: '09:00', status: 'Serving', createdAt: '08:45' },
+                { id: 102, number: 'A-02', patientName: 'Malika Axmedova', phone: '+998 93 444 55 66', doctorId: 'doc1', service: 'Tekshiruv va Konsultatsiya', time: '09:30', status: 'Waiting', createdAt: '08:50' },
+                { id: 103, number: 'B-01', patientName: 'Otabek Zokirov', phone: '+998 97 777 88 99', doctorId: 'doc2', service: 'Jarrohlik / Tish Oldirish', time: '09:00', status: 'Serving', createdAt: '08:55' },
+                { id: 104, number: 'C-01', patientName: 'Gulnora Qosimova', phone: '+998 91 222 33 44', doctorId: 'doc3', service: 'Tish Tozalash va Oqartirish', time: '09:00', status: 'Waiting', createdAt: '09:00' }
+            ],
+            selectedDoctorId: 'doc1',
+            selectedTimeSlot: '09:30',
+            myTicketId: null,
+            lastCalledTicket: { number: 'A-01', patientName: 'Sardor Rahimov', doctorName: 'Dr. Rustamov Anvar', room: '101-xona', time: '09:00' },
+            audioEnabled: true
+        };
+
+        // Load State from LocalStorage or use default
+        let state = loadState();
+
+        function loadState() {
+            try {
+                const saved = localStorage.getItem('dentaqueue_state');
+                if (saved) return JSON.parse(saved);
+            } catch (e) {
+                console.warn('LocalStorage error:', e);
+            }
+            return JSON.parse(JSON.stringify(DEFAULT_STATE));
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem('dentaqueue_state', JSON.stringify(state));
+            } catch (e) {
+                console.warn('LocalStorage save error:', e);
+            }
+        }
+
+        /* Application LifeCycle Initializers */
+        window.onload = function() {
+            initClock();
+            initDatePicker();
+            renderDoctorsSelection();
+            renderTimeSlots();
+            renderQuickQueue();
+            renderTVDisplay();
+            renderAdminDoctorOptions();
+            renderAdminDashboard();
+            renderAnalyticsAndMap();
+            updateMyTicketView();
+        };
+
+        function initDatePicker() {
+            const dateInput = document.getElementById('booking-date');
+            if (dateInput) {
+                const today = new Date().toISOString().split('T')[0];
+                dateInput.value = today;
+                dateInput.min = today;
+            }
+        }
+
+        /* TAB SWITCHING SYSTEM */
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            const target = document.getElementById(`tab-${tabName}`);
+            if (target) target.classList.remove('hidden');
+
+            // Desktop Tab Highlight
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-dental-600', 'text-white', 'shadow');
+                btn.classList.add('text-slate-400');
+            });
+            const activeBtn = document.getElementById(`tab-btn-${tabName}`);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-dental-600', 'text-white', 'shadow');
+                activeBtn.classList.remove('text-slate-400');
+            }
+
+            // Mobile Navigation Highlight
+            document.querySelectorAll('.mob-tab').forEach(btn => {
+                btn.classList.remove('bg-dental-600', 'text-white');
+                btn.classList.add('text-slate-400');
+            });
+            const activeMobBtn = document.getElementById(`mob-tab-${tabName}`);
+            if (activeMobBtn) {
+                activeMobBtn.classList.add('bg-dental-600', 'text-white');
+                activeMobBtn.classList.remove('text-slate-400');
+            }
+        }
+
+        /* BOOKING FORM FUNCTIONS */
+        function renderDoctorsSelection() {
+            const container = document.getElementById('doctor-selection-grid');
+            if (!container) return;
+            container.innerHTML = '';
+
+            state.doctors.forEach(doc => {
+                const isSelected = doc.id === state.selectedDoctorId;
+                const card = document.createElement('div');
+                card.className = `cursor-pointer p-3.5 rounded-2xl border transition-all text-left ${
+                    isSelected 
+                    ? 'bg-dental-950/80 border-dental-500 ring-2 ring-dental-500/30 shadow-md' 
+                    : 'bg-slate-800/60 border-slate-700/80 hover:border-slate-600'
+                }`;
+                card.onclick = () => selectDoctor(doc.id);
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-700 text-dental-300 font-mono">${doc.room}</span>
+                        <i class="fa-solid ${isSelected ? 'fa-circle-check text-dental-400' : 'fa-circle text-slate-600'} text-xs"></i>
+                    </div>
+                    <div class="font-bold text-xs text-white">${doc.name}</div>
+                    <div class="text-[11px] text-slate-400">${doc.spec}</div>
+                `;
+                container.appendChild(card);
+            });
+
+            const selectedDoc = state.doctors.find(d => d.id === state.selectedDoctorId);
+            if (selectedDoc) {
+                document.getElementById('selected-doctor-info').textContent = `${selectedDoc.name} (${selectedDoc.room})`;
+            }
+        }
+
+        function selectDoctor(docId) {
+            state.selectedDoctorId = docId;
+            renderDoctorsSelection();
+            renderTimeSlots();
+            saveState();
+        }
+
+        function renderTimeSlots() {
+            const container = document.getElementById('time-slots-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            // Check slots booked for doctor
+            const takenSlots = state.tickets
+                .filter(t => t.doctorId === state.selectedDoctorId && t.status !== 'Completed' && t.status !== 'Cancelled')
+                .map(t => t.time);
+
+            state.timeSlots.forEach(slot => {
+                const isTaken = takenSlots.includes(slot);
+                const isSelected = slot === state.selectedTimeSlot;
+
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.disabled = isTaken;
+                btn.className = `py-2 rounded-xl text-xs font-bold border transition ${
+                    isTaken 
+                    ? 'bg-slate-900 border-slate-800 text-slate-600 line-through cursor-not-allowed opacity-60'
+                    : isSelected 
+                    ? 'bg-dental-500 border-dental-400 text-white shadow-md'
+                    : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-700'
+                }`;
+                btn.textContent = slot;
+                btn.onclick = () => {
+                    state.selectedTimeSlot = slot;
+                    renderTimeSlots();
+                    saveState();
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function handleBookingSubmit(e) {
+            e.preventDefault();
+            const name = document.getElementById('patient-name').value;
+            const phone = document.getElementById('patient-phone').value;
+            const service = document.getElementById('service-type').value;
+
+            const doc = state.doctors.find(d => d.id === state.selectedDoctorId);
+            
+            // Format Ticket Code
+            const doctorTickets = state.tickets.filter(t => t.doctorId === doc.id);
+            const nextNum = doctorTickets.length + 1;
+            const formattedNum = `${doc.code}-${nextNum < 10 ? '0' + nextNum : nextNum}`;
+
+            const newTicket = {
+                id: Date.now(),
+                number: formattedNum,
+                patientName: name,
+                phone: phone,
+                doctorId: doc.id,
+                service: service,
+                time: state.selectedTimeSlot,
+                status: 'Waiting',
+                createdAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+
+            state.tickets.push(newTicket);
+            state.myTicketId = newTicket.id;
+
+            // Reset Input Fields
+            document.getElementById('patient-name').value = '';
+            document.getElementById('patient-phone').value = '';
+
+            saveState();
+
+            // Refresh UI Views
+            renderTimeSlots();
+            renderQuickQueue();
+            renderTVDisplay();
+            renderAdminDashboard();
+            renderAnalyticsAndMap();
+            updateMyTicketView();
+
+            document.getElementById('my-ticket-badge').classList.remove('hidden');
+            playNotificationSound();
+            switchTab('tickets');
+        }
+
+        /* QUICK QUEUE & TV DISPLAY FUNCTIONS */
+        function renderQuickQueue() {
+            const container = document.getElementById('quick-doctors-queue-list');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const waitingTotal = state.tickets.filter(t => t.status === 'Waiting').length;
+            document.getElementById('live-queue-count').textContent = `${waitingTotal} kishi kutmoqda`;
+
+            const servingTicket = state.tickets.find(t => t.status === 'Serving');
+            if (servingTicket) {
+                const doc = state.doctors.find(d => d.id === servingTicket.doctorId);
+                document.getElementById('quick-now-serving-ticket').textContent = servingTicket.number;
+                document.getElementById('quick-now-serving-doctor').textContent = `Shifokor: ${doc ? doc.name : '-'}`;
+            } else {
+                document.getElementById('quick-now-serving-ticket').textContent = '---';
+                document.getElementById('quick-now-serving-doctor').textContent = 'Qabul bo\'sh';
+            }
+
+            state.doctors.forEach(doc => {
+                const doctorWaiting = state.tickets.filter(t => t.doctorId === doc.id && t.status === 'Waiting');
+                const doctorServing = state.tickets.find(t => t.doctorId === doc.id && t.status === 'Serving');
+
+                const div = document.createElement('div');
+                div.className = 'bg-slate-800/50 border border-slate-700/60 rounded-xl p-3 flex justify-between items-center text-xs';
+                div.innerHTML = `
+                    <div>
+                        <div class="font-bold text-white">${doc.name} <span class="text-slate-400 font-normal">(${doc.room})</span></div>
+                        <div class="text-slate-400 text-[11px]">Joriy: <span class="text-emerald-400 font-bold">${doctorServing ? doctorServing.number : 'Bo\'sh'}</span></div>
+                    </div>
+                    <div class="text-right">
+                        <span class="px-2.5 py-1 rounded-full font-bold bg-slate-700 text-slate-300 text-[10px]">
+                            ${doctorWaiting.length} kishi navbatda
+                        </span>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function renderTVDisplay() {
+            if (state.lastCalledTicket) {
+                document.getElementById('tv-called-patient-name').textContent = state.lastCalledTicket.patientName;
+                document.getElementById('tv-called-ticket').textContent = state.lastCalledTicket.number;
+                document.getElementById('tv-called-cabinet').innerHTML = `<i class="fa-solid fa-door-open text-dental-400"></i> ${state.lastCalledTicket.room}`;
+                document.getElementById('tv-called-doctor-name').textContent = state.lastCalledTicket.doctorName;
+                document.getElementById('last-called-time').textContent = `Chaqirildi: ${state.lastCalledTicket.time}`;
+            }
+
+            const cabinetContainer = document.getElementById('tv-cabinet-status-list');
+            if (!cabinetContainer) return;
+            cabinetContainer.innerHTML = '';
+
+            state.doctors.forEach(doc => {
+                const currentServing = state.tickets.find(t => t.doctorId === doc.id && t.status === 'Serving');
+
+                const card = document.createElement('div');
+                card.className = 'bg-slate-950/90 border border-slate-800 rounded-2xl p-3.5 flex items-center justify-between';
+                card.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-dental-400 font-bold text-xs font-mono">
+                            ${doc.code}
+                        </div>
+                        <div>
+                            <div class="text-xs font-bold text-white">${doc.room} - ${doc.name}</div>
+                            <div class="text-[11px] text-slate-400">${doc.spec}</div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-[10px] text-slate-400 font-bold uppercase">Xonada:</div>
+                        <div class="text-xl font-black ${currentServing ? 'text-emerald-400 animate-pulse' : 'text-slate-600'} font-mono">
+                            ${currentServing ? currentServing.number : 'Bo\'sh'}
+                        </div>
+                    </div>
+                `;
+                cabinetContainer.appendChild(card);
+            });
+
+            // Ticker upcoming patients
+            const upcomingContainer = document.getElementById('tv-upcoming-list');
+            if (!upcomingContainer) return;
+            upcomingContainer.innerHTML = '';
+
+            const waitingTickets = state.tickets.filter(t => t.status === 'Waiting');
+            if (waitingTickets.length === 0) {
+                upcomingContainer.innerHTML = '<span class="text-xs text-slate-500 py-1">Kutayotgan navbatlar yo\'q</span>';
+            } else {
+                waitingTickets.forEach(t => {
+                    const doc = state.doctors.find(d => d.id === t.doctorId);
+                    const pill = document.createElement('div');
+                    pill.className = 'bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-xl flex items-center gap-2 text-xs';
+                    pill.innerHTML = `
+                        <span class="font-extrabold font-mono text-dental-400">${t.number}</span>
+                        <span class="text-slate-300">${t.patientName}</span>
+                        <span class="text-slate-500 text-[10px]">(${doc ? doc.room : ''})</span>
+                    `;
+                    upcomingContainer.appendChild(pill);
+                });
+            }
+        }
+
+        /* ADMIN & DOCTOR CONTROL PANEL FUNCTIONS */
+        function renderAdminDoctorOptions() {
+            const select = document.getElementById('admin-doctor-select');
+            if (!select) return;
+            select.innerHTML = '';
+            state.doctors.forEach(doc => {
+                const opt = document.createElement('option');
+                opt.value = doc.id;
+                opt.textContent = `${doc.name} (${doc.room})`;
+                select.appendChild(opt);
+            });
+            select.value = state.selectedDoctorId;
+        }
+
+        function renderAdminDashboard() {
+            const docId = document.getElementById('admin-doctor-select').value;
+            const doc = state.doctors.find(d => d.id === docId);
+
+            const current = state.tickets.find(t => t.doctorId === docId && t.status === 'Serving');
+            if (current) {
+                document.getElementById('admin-current-ticket').textContent = current.number;
+                document.getElementById('admin-current-name').textContent = current.patientName;
+                document.getElementById('admin-current-service').textContent = `Xizmat: ${current.service}`;
+            } else {
+                document.getElementById('admin-current-ticket').textContent = '---';
+                document.getElementById('admin-current-name').textContent = 'Bemor yo\'q';
+                document.getElementById('admin-current-service').textContent = 'Xizmat: -';
+            }
+
+            const totalDone = state.tickets.filter(t => t.doctorId === docId && t.status === 'Completed').length;
+            document.getElementById('doctor-total-count').textContent = `${totalDone} kishi`;
+
+            const statusBadge = document.getElementById('doctor-status-badge');
+            if (doc.status === 'Active') {
+                statusBadge.textContent = 'Qabul Qilmoqda';
+                statusBadge.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+            } else {
+                statusBadge.textContent = 'Tanaffusda';
+                statusBadge.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30';
+            }
+
+            // Table rendering
+            const tableBody = document.getElementById('admin-queue-table-body');
+            if (!tableBody) return;
+            tableBody.innerHTML = '';
+
+            const docTickets = state.tickets.filter(t => t.doctorId === docId && t.status !== 'Completed' && t.status !== 'Cancelled');
+
+            if (docTickets.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="7" class="py-4 text-center text-slate-500">Ushbu shifokorda faol navbatlar yo'q</td></tr>`;
+                return;
+            }
+
+            docTickets.forEach(t => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition';
+
+                let statusTag = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">Kutmoqda</span>`;
+                if (t.status === 'Serving') {
+                    statusTag = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Xonada</span>`;
+                }
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-bold font-mono text-dental-400">${t.number}</td>
+                    <td class="py-3 px-4 font-semibold text-white">${t.patientName}</td>
+                    <td class="py-3 px-4 text-slate-400">${t.phone}</td>
+                    <td class="py-3 px-4 text-slate-300">${t.service}</td>
+                    <td class="py-3 px-4 text-slate-400">${t.time}</td>
+                    <td class="py-3 px-4">${statusTag}</td>
+                    <td class="py-3 px-4 text-right space-x-1">
+                        <button onclick="callSpecificPatient(${t.id})" class="px-2.5 py-1 rounded-lg bg-dental-600 hover:bg-dental-500 text-white font-bold text-[11px]" title="Chaqirish">
+                            <i class="fa-solid fa-bullhorn"></i>
+                        </button>
+                        <button onclick="markNoShow(${t.id})" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-rose-900 text-slate-400 hover:text-rose-200 font-bold text-[11px]" title="Kelmadi">
+                            <i class="fa-solid fa-user-xmark"></i>
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        function callNextPatient() {
+            const docId = document.getElementById('admin-doctor-select').value;
+            const doc = state.doctors.find(d => d.id === docId);
+
+            // Complete current patient
+            const currentServing = state.tickets.find(t => t.doctorId === docId && t.status === 'Serving');
+            if (currentServing) {
+                currentServing.status = 'Completed';
+            }
+
+            // Find next waiting
+            const nextPatient = state.tickets.find(t => t.doctorId === docId && t.status === 'Waiting');
+            if (!nextPatient) {
+                const msgBox = document.createElement('div');
+                msgBox.className = 'fixed bottom-4 right-4 bg-amber-500 text-slate-950 font-bold text-xs px-4 py-3 rounded-xl shadow-2xl z-50';
+                msgBox.textContent = 'Kutayotgan keyingi bemor topilmadi!';
+                document.body.appendChild(msgBox);
+                setTimeout(() => msgBox.remove(), 2500);
+
+                saveState();
+                renderAdminDashboard();
+                renderQuickQueue();
+                renderTVDisplay();
+                renderAnalyticsAndMap();
+                return;
+            }
+
+            nextPatient.status = 'Serving';
+            state.lastCalledTicket = {
+                number: nextPatient.number,
+                patientName: nextPatient.patientName,
+                doctorName: doc.name,
+                room: doc.room,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+
+            saveState();
+            playNotificationSound();
+            renderAdminDashboard();
+            renderQuickQueue();
+            renderTVDisplay();
+            renderAnalyticsAndMap();
+            updateMyTicketView();
+        }
+
+        function callSpecificPatient(ticketId) {
+            const ticket = state.tickets.find(t => t.id === ticketId);
+            if (!ticket) return;
+
+            const doc = state.doctors.find(d => d.id === ticket.doctorId);
+
+            state.tickets.filter(t => t.doctorId === ticket.doctorId && t.status === 'Serving').forEach(t => t.status = 'Completed');
+
+            ticket.status = 'Serving';
+            state.lastCalledTicket = {
+                number: ticket.number,
+                patientName: ticket.patientName,
+                doctorName: doc.name,
+                room: doc.room,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+
+            saveState();
+            playNotificationSound();
+            renderAdminDashboard();
+            renderQuickQueue();
+            renderTVDisplay();
+            renderAnalyticsAndMap();
+            updateMyTicketView();
+        }
+
+        function finishCurrentPatient() {
+            const docId = document.getElementById('admin-doctor-select').value;
+            const current = state.tickets.find(t => t.doctorId === docId && t.status === 'Serving');
+            if (current) {
+                current.status = 'Completed';
+                saveState();
+                renderAdminDashboard();
+                renderQuickQueue();
+                renderTVDisplay();
+                renderAnalyticsAndMap();
+                updateMyTicketView();
+            }
+        }
+
+        function addEmergencyTicket() {
+            const nameInput = document.getElementById('emergency-name');
+            const phoneInput = document.getElementById('emergency-phone');
+            if (!nameInput.value) {
+                nameInput.focus();
+                return;
+            }
+
+            const docId = document.getElementById('admin-doctor-select').value;
+            const doc = state.doctors.find(d => d.id === docId);
+
+            const doctorTickets = state.tickets.filter(t => t.doctorId === doc.id);
+            const nextNum = doctorTickets.length + 1;
+            const formattedNum = `${doc.code}-${nextNum < 10 ? '0' + nextNum : nextNum}⚡`;
+
+            const emergencyTicket = {
+                id: Date.now(),
+                number: formattedNum,
+                patientName: `[SHOSHILINCH] ${nameInput.value}`,
+                phone: phoneInput.value || 'Shoshilinch',
+                doctorId: doc.id,
+                service: '⚡ Shoshilinch O\'tkir Og\'riq',
+                time: 'Hozir',
+                status: 'Waiting',
+                createdAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+
+            state.tickets.unshift(emergencyTicket);
+
+            nameInput.value = '';
+            phoneInput.value = '';
+
+            saveState();
+            renderAdminDashboard();
+            renderQuickQueue();
+            renderTVDisplay();
+            renderAnalyticsAndMap();
+        }
+
+        function toggleDoctorPause() {
+            const docId = document.getElementById('admin-doctor-select').value;
+            const doc = state.doctors.find(d => d.id === docId);
+            doc.status = doc.status === 'Active' ? 'Paused' : 'Active';
+            saveState();
+            renderAdminDashboard();
+            renderAnalyticsAndMap();
+        }
+
+        function resetDoctorQueue() {
+            const docId = document.getElementById('admin-doctor-select').value;
+            state.tickets = state.tickets.filter(t => t.doctorId !== docId);
+            saveState();
+            renderAdminDashboard();
+            renderQuickQueue();
+            renderTVDisplay();
+            renderAnalyticsAndMap();
+            updateMyTicketView();
+        }
+
+        function markNoShow(ticketId) {
+            const ticket = state.tickets.find(t => t.id === ticketId);
+            if (ticket) {
+                ticket.status = 'Cancelled';
+                saveState();
+                renderAdminDashboard();
+                renderQuickQueue();
+                renderTVDisplay();
+                renderAnalyticsAndMap();
+            }
+        }
+
+        /* ANALYTICS & INTERACTIVE ROOM MAP */
+        function renderAnalyticsAndMap() {
+            // Stats calculation
+            const total = state.tickets.length;
+            const completed = state.tickets.filter(t => t.status === 'Completed').length;
+
+            document.getElementById('stat-total-patients').textContent = total;
+            document.getElementById('stat-completed-patients').textContent = completed;
+
+            // Render 2D Visual Map
+            state.doctors.forEach((doc) => {
+                const mapContainer = document.getElementById(`room-map-${doc.id}`);
+                if (!mapContainer) return;
+
+                const currentServing = state.tickets.find(t => t.doctorId === doc.id && t.status === 'Serving');
+                const waitingCount = state.tickets.filter(t => t.doctorId === doc.id && t.status === 'Waiting').length;
+
+                let isOccupied = !!currentServing;
+                let statusColor = isOccupied ? 'border-emerald-500 bg-emerald-950/30' : 'border-slate-700 bg-slate-900/80';
+
+                mapContainer.className = `border-2 rounded-2xl p-5 transition-all ${statusColor}`;
+                mapContainer.innerHTML = `
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-xs font-bold px-2.5 py-1 rounded-lg bg-slate-800 text-dental-300 font-mono">${doc.room}</span>
+                        <span class="w-3 h-3 rounded-full ${isOccupied ? 'bg-emerald-500 animate-pulse' : 'bg-slate-600'}"></span>
+                    </div>
+                    <div class="text-base font-extrabold text-white mb-1">${doc.name}</div>
+                    <div class="text-xs text-slate-400 mb-4">${doc.spec}</div>
+
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs space-y-1.5">
+                        <div class="flex justify-between text-slate-400">
+                            <span>Xona holati:</span>
+                            <span class="font-bold ${isOccupied ? 'text-emerald-400' : 'text-slate-500'}">${isOccupied ? 'BEMOR BOR' : 'BO\'SH'}</span>
+                        </div>
+                        <div class="flex justify-between text-slate-400">
+                            <span>Joriy bemor:</span>
+                            <span class="font-bold font-mono text-white">${currentServing ? currentServing.number : '-'}</span>
+                        </div>
+                        <div class="flex justify-between text-slate-400">
+                            <span>Kutishda:</span>
+                            <span class="font-bold text-amber-400">${waitingCount} kishi</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        /* MY TICKET PASS VIEW */
+        function updateMyTicketView() {
+            const noTicketView = document.getElementById('no-ticket-view');
+            const activeCard = document.getElementById('printable-ticket');
+
+            if (!state.myTicketId) {
+                noTicketView.classList.remove('hidden');
+                activeCard.classList.add('hidden');
+                document.getElementById('my-ticket-badge').classList.add('hidden');
+                return;
+            }
+
+            const ticket = state.tickets.find(t => t.id === state.myTicketId);
+            if (!ticket || ticket.status === 'Cancelled') {
+                state.myTicketId = null;
+                saveState();
+                noTicketView.classList.remove('hidden');
+                activeCard.classList.add('hidden');
+                document.getElementById('my-ticket-badge').classList.add('hidden');
+                return;
+            }
+
+            noTicketView.classList.add('hidden');
+            activeCard.classList.remove('hidden');
+
+            const doc = state.doctors.find(d => d.id === ticket.doctorId);
+
+            document.getElementById('ticket-card-number').textContent = ticket.number;
+            document.getElementById('ticket-card-patient').textContent = ticket.patientName;
+            document.getElementById('ticket-card-doctor').textContent = doc ? doc.name : '-';
+            document.getElementById('ticket-card-room').textContent = doc ? doc.room : '-';
+            document.getElementById('ticket-card-time').textContent = ticket.time;
+            document.getElementById('ticket-card-service').textContent = ticket.service;
+
+            const statusPill = document.getElementById('ticket-status-pill');
+            if (ticket.status === 'Serving') {
+                statusPill.textContent = '🔔 SIZNING NAVBATINGIZ! XONAGA KIRING';
+                statusPill.className = 'inline-block px-3 py-1 rounded-full text-xs font-bold bg-emerald-500 text-white animate-bounce shadow-lg shadow-emerald-500/50';
+            } else if (ticket.status === 'Completed') {
+                statusPill.textContent = '✅ QABUL YAKUNLANDI';
+                statusPill.className = 'inline-block px-3 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-300 border border-slate-700';
+            } else {
+                statusPill.textContent = '⏳ NAVBAT KUTILMOQDA';
+                statusPill.className = 'inline-block px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30';
+            }
+        }
+
+        function cancelMyTicket() {
+            const ticket = state.tickets.find(t => t.id === state.myTicketId);
+            if (ticket) ticket.status = 'Cancelled';
+            state.myTicketId = null;
+            saveState();
+            updateMyTicketView();
+            renderQuickQueue();
+            renderTVDisplay();
+            renderAdminDashboard();
+            renderAnalyticsAndMap();
+        }
+
+        function printTicket() {
+            window.print();
+        }
+
+        /* SOUND AUDIO SYNTHESIS */
+        function toggleAudio() {
+            state.audioEnabled = !state.audioEnabled;
+            saveState();
+            const icon = document.getElementById('audio-icon');
+            const text = document.getElementById('audio-status-text');
+            if (state.audioEnabled) {
+                icon.className = 'fa-solid fa-volume-high text-emerald-400';
+                text.textContent = 'Ovoz Yoniq';
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark text-slate-500';
+                text.textContent = 'Ovoz O\'chiq';
+            }
+        }
+
+        function playNotificationSound() {
+            if (!state.audioEnabled) return;
+            try {
+                const synth = new Tone.Synth().toDestination();
+                const now = Tone.now();
+                synth.triggerAttackRelease("G4", "8n", now);
+                synth.triggerAttackRelease("C5", "8n", now + 0.15);
+                synth.triggerAttackRelease("E5", "8n", now + 0.3);
+            } catch (e) {
+                console.log('Audio playback context issue', e);
+            }
+        }
+
+        function resetAllDemoData() {
+            localStorage.removeItem('dentaqueue_state');
+            state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+            saveState();
+            location.reload();
+        }
+
+        /* LIVE CLOCK UPDATER */
+        function initClock() {
+            function updateClock() {
+                const now = new Date();
+                const clockEl = document.getElementById('live-clock');
+                const dateEl = document.getElementById('live-date');
+                if (clockEl) clockEl.textContent = now.toLocaleTimeString([], { hour12: false });
+                if (dateEl) {
+                    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                    dateEl.textContent = now.toLocaleDateString('uz-UZ', options);
+                }
+            }
+            updateClock();
+            setInterval(updateClock, 1000);
+        }
+    </script>
+</body>
+</html>
